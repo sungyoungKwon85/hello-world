@@ -1,0 +1,62 @@
+@Test
+public void jsonStr(){
+    String jsonStr = "{ \"kind\": \"urlshortener#url\", \"id\": \"https://goo.gl/TV9YAQ\", \"longUrl\": \"http://mysite.com/image/detail/172699\"}";
+    String jsonStr3 = "{ \"kind\": \"urlshortener#url\", \"id\": \"\", \"longUrl\": \"http://mysite.com/image/detail/172699\"}";
+    String jsonStr2 = "{\"shortUrl\":{\"shortUrl\":\"http://skpla.net/fUZe\",\"originUrl\":\"http://mysite.com/image/detail/172699\",\"createdDate\":\"2017-04-18T11:07:54KST\",\"path\":\"fUZe\",\"description\":\"\"}}";
+    ObjectMapper om = new ObjectMapper();
+    Map<String, String> jsonMap = null;
+    try {
+      jsonMap = om.readValue(jsonStr3, new TypeReference<HashMap<String, String>>() {});
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    String result = jsonMap.get("id");
+}
+
+@Test
+public void shortenUrl(String originUrl){
+    if (originUrl == null) {
+        return originUrl;
+    }
+
+    String resultUrl = originUrl;
+    String originalUrlJsonStr = "{\"longUrl\":\"" + originUrl + "\"}";
+
+    URL	url = null;
+    HttpURLConnection connection  = null;
+    OutputStreamWriter writer = null;
+    BufferedReader br = null;
+    StringBuffer sb	= null; 
+
+    try{
+        url = new URL(CREATE_SHORT_URL + APP_KEY);
+        connection = (HttpURLConnection) url.openConnection();
+        connection.setDoOutput(true);
+        connection.setRequestMethod("POST");
+        connection.setRequestProperty("Content-Type", "application/json");
+    }catch(Exception e){
+      e.printStackTrace();
+        return resultUrl;
+    }
+
+    try{
+      writer = new OutputStreamWriter(connection.getOutputStream());
+        writer.write(originalUrlJsonStr);
+        writer.flush();
+
+        br = new BufferedReader(new InputStreamReader(connection.getInputStream(), "UTF-8"));
+        sb = new StringBuffer();
+        String buf = "";
+        while((buf = br.readLine()) != null){
+            sb.append(buf);
+        }
+        resultUrl = sb.toString();
+    }catch(Exception e){
+        e.printStackTrace();
+        return resultUrl;
+    }finally{
+        if(writer != null) try{ writer.close(); }catch(Exception e){ e.printStackTrace(); }
+        if(br != null) try{ br.close(); }catch(Exception e){ e.printStackTrace(); }
+    }
+    return resultUrl;
+}
